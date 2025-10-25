@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
   hadoop-master:
-    image: yassern1/hadoop-spark-jupyter:1.0.3
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hadoop-spark-jupyter:1.0.3
     container_name: hadoop-master
     hostname: hadoop-master
     ports:
@@ -20,7 +23,7 @@ services:
       - hadoop-net
 
   hadoop-slave1:
-    image: yassern1/hadoop-spark-jupyter:1.0.3
+    image: hadoop-spark-jupyter:1.0.3
     container_name: hadoop-slave1
     hostname: hadoop-slave1
     ports:
@@ -29,13 +32,26 @@ services:
       - hadoop-net
 
   hadoop-slave2:
-    image: yassern1/hadoop-spark-jupyter:1.0.3
+    image: hadoop-spark-jupyter:1.0.3
     container_name: hadoop-slave2
     hostname: hadoop-slave2
     ports:
       - "8041:8042" 
     networks:
       - hadoop-net
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    hostname: kafka-ui
+    networks:
+      - hadoop-net
+    ports:
+      - "8081:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=hadoop-master:9092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=hadoop-master:2181
 
 networks:
   hadoop-net:
