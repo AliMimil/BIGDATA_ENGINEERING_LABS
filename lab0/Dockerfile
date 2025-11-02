@@ -1,5 +1,6 @@
 FROM ubuntu:bionic
 
+MAINTAINER Yasser ALAMI <yassern1@gmail.com>
 
 WORKDIR /root
 
@@ -10,14 +11,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssh-server 
     apt-get update && apt-get install -y \
         python3.8 python3.8-distutils python3.8-venv && \
     rm -rf /var/lib/apt/lists/*
-    
+
+# INSTALL JAVA - AJOUT CRITIQUE
+RUN apt-get update && apt-get install -y openjdk-8-jdk
+
 #install scala & jupyter packages dependencies
 RUN apt-get update && apt-get install -y wget gnupg && \
     wget https://downloads.lightbend.com/scala/2.13.14/scala-2.13.14.deb && \
     dpkg -i scala-2.13.14.deb || apt-get install -fy && \
     rm scala-2.13.14.deb && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
-
 
 # Hadoop, Spark, Kafka, HBase installation
 RUN set -eux; \
@@ -50,15 +53,10 @@ ENV PYSPARK_DRIVER_PYTHON=/usr/bin/python3.8
 # Add the alias to .bashrc
 RUN echo "alias python='/usr/bin/python3.8'" >> ~/.bashrc
 
-
 ENV CLASSPATH=/usr/local/kafka/
 
-######
-
-
-
-#source 
-RUN . ~/.bashrc
+# CORRECTION : Utiliser bash pour sourcer
+RUN /bin/bash -c "source ~/.bashrc"
 
 # ssh without key
 RUN ssh-keygen -t rsa -f ~/.ssh/id_rsa -P '' && \
@@ -94,17 +92,17 @@ RUN chmod +x ~/start-hadoop.sh && \
     chmod +x ~/run-wordcount.sh && \
     chmod +x $HADOOP_HOME/sbin/start-dfs.sh && \
     chmod +x $HADOOP_HOME/sbin/start-yarn.sh 
+
 #clear downloaded packages
-#RUN pip cache purge && \
 RUN apt-get clean && \
     apt-get autoremove --purge -y && \
     apt-get autoremove -y && \
     apt-get autoclean -y && \
     rm -rf ~/.cache/pip
 
-# format namenode
 RUN rm -rf /var/lib/apt/lists/*
 
+# format namenode
 RUN /usr/local/hadoop/bin/hdfs namenode -format
 
 CMD [ "sh", "-c", "service ssh start; bash"]

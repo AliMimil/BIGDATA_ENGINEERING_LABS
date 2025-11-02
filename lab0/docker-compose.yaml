@@ -2,57 +2,45 @@ version: '3.8'
 
 services:
   hadoop-master:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: hadoop-spark-jupyter:1.0.3
+    image: yassern1/hadoop-spark-jupyter:1.0.3
     container_name: hadoop-master
     hostname: hadoop-master
     ports:
-      - "9870:9870"  
-      - "8088:8088"  
-      - "7077:7077"  
-      - "19888:19888" 
-      - "8080:8080"  
-      - "9000:9000" 
-    volumes:
-      - type: bind
-        source: D:/DockerImages/hadoop_project
-        target: /shared_volume
+      - "9870:9870"   # Hadoop NameNode Web UI
+      - "8088:8088"   # YARN ResourceManager Web UI
+      - "7077:7077"   # Spark Master
+      - "19888:19888" # JobHistoryServer
+      - "8080:8080"   # Jupyter
+      - "9000:9000"   # HDFS NameNode
     networks:
-      - hadoop-net
+      - hadoop
+    volumes:
+      - C:\Users\ali\Downloads\hadoop_project\:/shared_volume
+    tty: true
+    stdin_open: true
 
   hadoop-slave1:
-    image: hadoop-spark-jupyter:1.0.3
+    image: yassern1/hadoop-spark-jupyter:1.0.3
     container_name: hadoop-slave1
     hostname: hadoop-slave1
     ports:
-      - "8040:8042"
+      - "8040:8042"   # NodeManager 1
     networks:
-      - hadoop-net
+      - hadoop
+    tty: true
+    stdin_open: true
 
   hadoop-slave2:
-    image: hadoop-spark-jupyter:1.0.3
+    image: yassern1/hadoop-spark-jupyter:1.0.3
     container_name: hadoop-slave2
     hostname: hadoop-slave2
     ports:
-      - "8041:8042" 
+      - "8041:8042"   # NodeManager 2
     networks:
-      - hadoop-net
-
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
-    hostname: kafka-ui
-    networks:
-      - hadoop-net
-    ports:
-      - "8081:8080"
-    environment:
-      - KAFKA_CLUSTERS_0_NAME=local
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=hadoop-master:9092
-      - KAFKA_CLUSTERS_0_ZOOKEEPER=hadoop-master:2181
+      - hadoop
+    tty: true
+    stdin_open: true
 
 networks:
-  hadoop-net:
+  hadoop:
     driver: bridge
